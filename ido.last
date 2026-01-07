@@ -1,0 +1,30 @@
+;;; -*- coding: utf-8 -*-
+
+;; ----- ido-last-directory-list -----
+(
+ ("/Users/emblemwu/.emacs.d/" . "auto-save-list/")
+)
+
+;; ----- ido-work-directory-list -----
+(
+ "/Users/emblemwu/.emacs.d/"
+)
+
+;; ----- ido-work-file-list -----
+(
+ "init.el"
+)
+
+;; ----- ido-dir-file-cache -----
+(
+ ("/Users/" (26817 14431 607836 890000) "emblemwu/" "Shared/" ".localized" "../" "./")
+
+ ("/Users/emblemwu/.emacs.d/auto-save-list/" (26867 17041 862919 765000) "../" "./")
+
+ ("/Users/emblemwu/.emacs.d/" (26867 17041 861858 99000) "backups/" "early-init.el" "history" "init.el" "auto-save-list/" "config.el" "straight/" "places" "backup.doom.d/" "init.el~" "../" "./")
+
+ ("/Users/emblemwu/" (26867 16440 616142 539000) ".battery/" "outlook/" "ChatGPT-API-Leakage/" ".slime/" ".idapro/" ".zsh_sessions/" ".viminfo" ".bash_history" "handwriter/" ".docsets/" ".zprofile.macports-saved_2024-12-11_at_15:32:11" ".orbstack/" ".gitconfig" ".chatgpt/" "school/" ".cache/" ".DDLocalBackups/" ".python_history" "Downloads/" ".oh-my-zsh/" ".aspnet/" "AndroidStudioProjects/" ".swiftpm/" ".gem/" ".m2/" ".vscode/" ".mono/" "Sunlogin Files/" ".mysql_history" ".mailcap" "Documents/" ".npm/" ".tintin/" ".keras/" ".zcompdump" "fg/" ".jupyter/" ".retroshare/" ".nrmrc" "IdeaProjects/" ".Trash/" "log/" "brain/" ".anaconda_backup/" "备份/" ".gradle/" ".profile" "Applications/" ".dotnet/" ".vimrc" "Movies/" "Applications (Parallels)/" ".ssh/" ".rustup/" ".PD_licenses.json" ".venv/" "DevEcoStudioProjects/" ".zcompdump-EmblemWu的MacBook Pro-5.8.1" ".zshenv" "DatabaseUtils.props" "protocol_config.conf" "package-lock.json" "my-cds.db" "stable-diffusion-webui/" "Virtual Machines.localized/" "Notes/" ".fiddler/" "Public/" "PycharmProjects/" ".ms_openjdk_config" ".sage/" "saves/" ".DDPreview/" ".p10k.zsh" ".cocoapods/" "scikit_learn_data/" ".android/" ".cargo/" ".node_repl_history" ".quicklisp/" ".nuuid.ini" "darwinbuild/" ".emacs.d/" ".zcompdump-EmblemWu的MacBook Pro-5.9" ".zcompdump-EmblemWudeMacBook-Pro-5.9" ".IdentityService/" "print" "Calibre Library/" "Parallels/" ".emulator_console_auth_token" ".oracle_jre_usage/" ".doom.d/" ".deno/" "texput.log" ".lesshst" ".angband/" ".matplotlib/" ".npmrc" "eclipse-workspace/" ".ohpm/" "Library/" "Desktop/" ".ipython/" ".p2/" ".zsh_history" "Sunlogin/" ".nuget/" "MEGA downloads/" ".sts4/" ".bundle/" ".openjfx/" ".nvm/" "#.doomd#" ".zprofile" "rust/" ".lceda/" ".bun/" "path/" "Pictures/" "projects/" "*message*-20221103-191819" ".local/" "Follow/" ".templateengine/" ".mime.types" ".packettracer" ".aerospace.toml" ".V2rayU/" "org/" ".sbclrc" "OrbStack/" ".zshrc" ".zshrc.pre-oh-my-zsh" ".zcompdump-EmblemWudeMacBook-Pro-5.9.zwc" ".bashrc" "images/" ".hawtjni/" ".vscode-react-native/" "wekafiles/" ".pytest_cache/" ".wget-hsts" ".hvigor/" ".w3m/" ".CFUserTextEncoding" ".yarnrc" ".electrum/" ".thumbnails/" "#%2Amail%2A#lwacN9#" ".zshrc~" ".gnupg/" ".DS_Store" "fiddler-everywhere-enhance/" ".vim/" ".docker/" ".gemrc" "Cisco Packet Tracer 8.2.2/" ".Huawei/" ".yarn/" ".qwen/" "Music/" ".config/" ".eclipse/" "Thumbs.db" "../" "./")
+)
+
+;; ----- ido-unc-hosts-cache -----
+t

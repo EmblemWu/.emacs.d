@@ -1,0 +1,8 @@
+eaf/
+eshell/
+history
+url/
+*~
+straight/
+site-lisp/
+node_modules/
