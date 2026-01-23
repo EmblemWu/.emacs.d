@@ -14,13 +14,20 @@
 ;; ---------------------------
 ;; Fonts
 ;; ---------------------------
-;; Set default and variable-pitch fonts. Height is 1/10 pt (170 = 17pt).
-(set-face-attribute 'default nil :family "Roboto mono" :height 170 :weight 'medium)
-(set-face-attribute 'variable-pitch nil :family "Fira Sans" :height 190 :weight 'bold)
+(defun emblem-apply-fonts (&optional frame)
+  "Apply font settings to FRAME (or the selected frame)."
+  (with-selected-frame (or frame (selected-frame))
+    ;; No fallbacks: only set fonts when the requested family exists.
+    (when (member "Roboto Mono" (font-family-list))
+      (set-face-attribute 'default nil :family "Roboto Mono" :height 130 :weight 'medium))
+    (when (member "Fira Sans" (font-family-list))
+      (set-face-attribute 'variable-pitch nil :family "Fira Sans" :height 150 :weight 'bold))
+    (when (and (facep 'fixed-pitch-serif) (member "Fira Code" (font-family-list)))
+      (set-face-attribute 'fixed-pitch-serif nil :family "Fira Code" :height 210 :weight 'regular))))
 
-;; Optional serif/fixed-pitch-serif mapping:
-(when (facep 'fixed-pitch-serif)
-  (set-face-attribute 'fixed-pitch-serif nil :family "Fira Code" :height 210 :weight 'regular))
+;; Apply on startup and for new frames (daemon/gui).
+(add-hook 'after-init-hook #'emblem-apply-fonts)
+(add-hook 'after-make-frame-functions #'emblem-apply-fonts)
 
 ;; 中文字体映射，避免中英文混排时 fallback 不一致（按需调整）
 ;; 优先使用苹方；如果没有则尝试 Noto Sans CJK / 思源黑体
@@ -60,9 +67,9 @@
 
 ;; macOS 图形细节：移除装饰 + 最大化（适合 everywhere 浮窗）
 ;; 如需系统原生全屏，把 fullscreen 改为 'fullboth 并保留 (undecorated . nil)
-(setq default-frame-alist
-      '((undecorated . t)
-        (fullscreen . maximized)
-        (ns-transparent-titlebar . t)))
+;; (setq default-frame-alist
+;;       '((undecorated . t)
+;;         (fullscreen . maximized)
+;;         (ns-transparent-titlebar . t)))
 
 (provide 'ui)

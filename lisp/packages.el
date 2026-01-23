@@ -6,16 +6,18 @@
 
 (use-package hide-mode-line)
 
+(use-package olivetti)
+
 (use-package nyan-mode
   :hook
   (after-init . nyan-mode)
   :config
   (setq nyan-animate-nyancat t))
 
-(use-package mini-frame
-;;  :hook
-;;  (after-init . mini-frame-mode)
-  :config)
+;; (use-package mini-frame
+;; ;;  :hook
+;; ;;  (after-init . mini-frame-mode)
+;;   :config)
 
 ;; 主题包只在这里声明，具体启用/配置放到 ui.el
 (use-package alabaster-emacs
@@ -41,15 +43,15 @@
   (tree-sitter-require 'tsx)
   (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx)))
 
-(use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
-  :custom
-  (copilot-indent-offset-warning-disable t) ;; suppress missing indent offset warnings
-  :config
-  (add-hook 'prog-mode-hook 'copilot-mode)
-  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-  :ensure t)
+;; (use-package copilot
+;;   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+;;   :custom
+;;   (copilot-indent-offset-warning-disable t) ;; suppress missing indent offset warnings
+;;   :config
+;;   (add-hook 'prog-mode-hook 'copilot-mode)
+;;   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+;;   (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+;;   :ensure t)
 
 
 (use-package typescript-mode
@@ -93,16 +95,16 @@
     :hook ((prog-mode . rainbow-delimiters-mode)))
 
 ;; Company mode (completion)
-(use-package company
-    :ensure t
-    :config
-    (global-company-mode +1))
+;; (use-package company
+;;     :ensure t
+;;     :config
+;;     (global-company-mode +1))
 
-;; Used to interface with swift-lsp.
-(use-package lsp-mode
-    :ensure t
-    :commands lsp
-    :hook ((swift-mode . lsp)))
+;; ;; Used to interface with swift-lsp.
+;; (use-package lsp-mode
+;;     :ensure t
+;;     :commands lsp
+;;     :hook ((swift-mode . lsp)))
 
 ;; lsp-mode's UI modules
 (use-package lsp-ui

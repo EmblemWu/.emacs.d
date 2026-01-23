@@ -14,13 +14,35 @@
 ;; ---------------------------
 ;; Fonts
 ;; ---------------------------
-;; Set default and variable-pitch fonts. Height is 1/10 pt (170 = 17pt).
-(set-face-attribute 'default nil :family "Roboto mono" :height 170 :weight 'medium)
-(set-face-attribute 'variable-pitch nil :family "Fira Sans" :height 190 :weight 'bold)
+;; Pick the first installed font from a preferred list to avoid fallback surprises.
+(defun emblem--first-available-font (fonts)
+  "Return the first font in FONTS that exists in `font-family-list'."
+  (seq-find (lambda (f) (member f (font-family-list))) fonts))
 
-;; Optional serif/fixed-pitch-serif mapping:
-(when (facep 'fixed-pitch-serif)
-  (set-face-attribute 'fixed-pitch-serif nil :family "Fira Code" :height 210 :weight 'regular))
+(defun emblem-apply-fonts (&optional frame)
+  "Apply font settings to FRAME (or the selected frame)."
+  (with-selected-frame (or frame (selected-frame))
+    (let ((mono-font (emblem--first-available-font
+                      '("Roboto Mono" "Roboto mono" "Fira Code" "JetBrains Mono"
+                        "Source Code Pro" "DejaVu Sans Mono" "Liberation Mono" "Monospace")))
+          (variable-font (emblem--first-available-font
+                          '("Fira Sans" "Source Sans 3" "Noto Sans"
+                            "DejaVu Sans" "Liberation Sans" "Sans Serif")))
+          (serif-font (emblem--first-available-font
+                       '("Fira Code" "Iosevka Slab" "Noto Serif"
+                         "DejaVu Serif" "Liberation Serif" "Serif"))))
+      ;; Set default and variable-pitch fonts. Height is 1/10 pt (170 = 17pt).
+      (when mono-font
+        (set-face-attribute 'default nil :family mono-font :height 130 :weight 'medium))
+      (when variable-font
+        (set-face-attribute 'variable-pitch nil :family variable-font :height 150 :weight 'bold))
+      ;; Optional serif/fixed-pitch-serif mapping:
+      (when (and serif-font (facep 'fixed-pitch-serif))
+        (set-face-attribute 'fixed-pitch-serif nil :family serif-font :height 210 :weight 'regular)))))
+
+;; Apply on startup and for new frames (daemon/gui).
+(add-hook 'after-init-hook #'emblem-apply-fonts)
+(add-hook 'after-make-frame-functions #'emblem-apply-fonts)
 
 ;; 中文字体映射，避免中英文混排时 fallback 不一致（按需调整）
 ;; 优先使用苹方；如果没有则尝试 Noto Sans CJK / 思源黑体
@@ -42,20 +64,27 @@
 ;; ---------------------------
 ;; auto-dark 配置（包在 packages.el 中声明）
 ;; 默认不启用，且防止它在启动时抢主题；若需自动切换，请手动 M-x auto-dark-mode
-
 (with-eval-after-load 'auto-dark
+  ;; 确保 alabaster 主题可被找到（local theme/ 或 straight 安装）
+  (add-to-list 'custom-theme-load-path (expand-file-name "theme" user-emacs-directory))
+  (let ((alabaster-dir (when-let ((lib (locate-library "alabaster-theme")))
+                         (file-name-directory lib))))
+    (when alabaster-dir
+      (add-to-list 'custom-theme-load-path alabaster-dir)))
   ;; 日/夜都用 alabaster，避免切换时被深色主题覆盖；需要深色可自行改第一个列表。
   (setq auto-dark-themes '((alabaster-dark) (alabaster))
         auto-dark-polling-interval-seconds 5
         auto-dark-allow-osascript nil
         auto-dark-allow-powershell nil))
 
+;; 启动后自动跟随系统深/浅色切换
+(add-hook 'after-init-hook #'auto-dark-mode)
+
 ;; macOS 图形细节：移除装饰 + 最大化（适合 everywhere 浮窗）
 ;; 如需系统原生全屏，把 fullscreen 改为 'fullboth 并保留 (undecorated . nil)
 (setq default-frame-alist
       '((undecorated . t)
         (fullscreen . maximized)
-;;        (ns-appearance . light)  ;; 按你系统主题改为 'dark 或 'light
         (ns-transparent-titlebar . t)))
 
 (provide 'ui)
