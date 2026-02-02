@@ -46,4 +46,44 @@
               (when (string-match "exited abnormally" msg)
                 (display-buffer buf)))))
 
+(defun my/type ()
+  (interactive)
+  (let* ((frame (make-frame '((title . "emacs-float")
+			      (width . 73)
+			      (height . 13)
+			      (undecorated . t))))
+	 (buf (get-buffer-create "*emacs-float*")))
+    (select-frame frame)
+    (switch-to-buffer buf)
+    (erase-buffer)
+    (org-mode)
+
+    (local-set-key
+     (kbd "C-c C-c")
+     (lambda ()
+       (interactive)
+       (let ((text (buffer-substring-no-properties (point-min) (point-max))))
+	 (start-process-shell-command
+	  "wtype" nil
+	  (format "wtype -s 350 %S" text))
+	 (delete-frame))))
+    (local-set-key
+     (kbd "C-c C-k")
+     (lambda ()
+       (interactive)
+       (delete-frame)))))
+
+(setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
+      fzf/executable "fzf"
+      fzf/git-grep-args "-i --line-number %s"
+      ;; command used for `fzf-grep-*` functions
+      ;; example usage for ripgrep:
+      ;; fzf/grep-command "rg --no-heading -nH"
+      fzf/grep-command "grep -nrH"
+      ;; If nil, the fzf buffer will appear at the top of the window
+      fzf/position-bottom t
+      fzf/window-height 11)
+
+(global-set-key (kbd "C-c C-f") 'fzf-directory)
+
 (provide 'config)

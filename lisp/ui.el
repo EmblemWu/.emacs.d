@@ -19,7 +19,7 @@
   (with-selected-frame (or frame (selected-frame))
     ;; No fallbacks: only set fonts when the requested family exists.
     (when (member "Roboto Mono" (font-family-list))
-      (set-face-attribute 'default nil :family "Roboto Mono" :height 130 :weight 'medium))
+      (set-face-attribute 'default nil :family "Roboto Mono" :height 150 :weight 'medium))
     (when (member "Fira Sans" (font-family-list))
       (set-face-attribute 'variable-pitch nil :family "Fira Sans" :height 150 :weight 'bold))
     (when (and (facep 'fixed-pitch-serif) (member "Fira Code" (font-family-list)))
@@ -56,7 +56,6 @@
                          (file-name-directory lib))))
     (when alabaster-dir
       (add-to-list 'custom-theme-load-path alabaster-dir)))
-  ;; 日/夜都用 alabaster，避免切换时被深色主题覆盖；需要深色可自行改第一个列表。
   (setq auto-dark-themes '((alabaster-dark) (alabaster))
         auto-dark-polling-interval-seconds 5
         auto-dark-allow-osascript nil

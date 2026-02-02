@@ -1,9 +1,9 @@
 ;; File: init.el
 
 (require 'packages)
-(require 'keybinding)
 (require 'config)
 (require 'ui)
+(require 'keybinding)
 
 ;;server
 (require 'server)
@@ -17,7 +17,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("1747a02911dec6d66aee4aacfd6b090b823151abcd73a5c68c93c022bf34a7ab"
+   '("3dcc6bb29782f1c1dcb3d58e34d7527e56f4fb67bfbfd8f28b0a0037ef241c47"
+     "1747a02911dec6d66aee4aacfd6b090b823151abcd73a5c68c93c022bf34a7ab"
      default)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

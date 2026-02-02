@@ -8,6 +8,14 @@
 
 (use-package olivetti)
 
+(use-package magit)
+
+(use-package devdocs)
+
+(use-package multiple-cursors)
+
+(use-package fzf)
+
 (use-package nyan-mode
   :hook
   (after-init . nyan-mode)
@@ -24,19 +32,22 @@
   :straight (alabaster-emacs :type git :host github :repo "emblemwu/alabaster-emacs")
   :defer t)
 
-(use-package ample-theme
-  :ensure t
-  :defer t)
+;; (use-package ample-theme
+;;   :ensure t
+;;   :defer t)
 
 (use-package auto-dark
-  :ensure t
-  :defer t)
+  :init (auto-dark-mode))
 
 ;; Assuming usage with dart-mode
 (use-package dart-mode
   ;; Optional
   :hook (dart-mode . flutter-test-mode))
 (use-package tree-sitter :commands (tree-sitter-mode))
+
+(use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t))
 
 (use-package tree-sitter-langs
   :config
@@ -166,7 +177,7 @@
 ;;   ;;proxy
 ;;   (setq eaf-proxy-type "socks5")
 ;;   (setq eaf-proxy-host "127.0.0.1")
-;;   (setq eaf-proxy-port "7890")
+;;   (setq eaf-proxy-port "20170")
   
 ;;   :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
 ;;   :custom

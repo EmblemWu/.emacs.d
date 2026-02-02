@@ -15,4 +15,11 @@
     (interactive)
     (forward-line 7)))
 
+;; multiple cursors
+(global-set-key (kbd "C-x y") 'mc/edit-lines)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-h d") 'devdocs-lookup)
+
 (provide 'keybinding)
