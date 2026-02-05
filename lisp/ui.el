@@ -7,9 +7,10 @@
 
 (setq initial-buffer-choice t)  
 
-(setq mode-line-format
-      (list
-       '(:eval (list (nyan-create)))))
+(with-eval-after-load 'nyan-mode
+  (setq mode-line-format
+        (list
+         '(:eval (list (nyan-create))))))
 
 ;; ---------------------------
 ;; Fonts
@@ -60,9 +61,6 @@
         auto-dark-polling-interval-seconds 5
         auto-dark-allow-osascript nil
         auto-dark-allow-powershell nil))
-
-;; 启动后自动跟随系统深/浅色切换
-(add-hook 'after-init-hook #'auto-dark-mode)
 
 ;; macOS 图形细节：移除装饰 + 最大化（适合 everywhere 浮窗）
 ;; 如需系统原生全屏，把 fullscreen 改为 'fullboth 并保留 (undecorated . nil)

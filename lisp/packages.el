@@ -12,6 +12,10 @@
 
 (use-package devdocs)
 
+;; (use-package reddigg)
+
+(use-package emacs-w3m)
+
 (use-package multiple-cursors)
 
 (use-package fzf)
@@ -37,7 +41,8 @@
 ;;   :defer t)
 
 (use-package auto-dark
-  :init (auto-dark-mode))
+  :commands (auto-dark-mode)
+  :hook (after-init . auto-dark-mode))
 
 ;; Assuming usage with dart-mode
 (use-package dart-mode
@@ -80,46 +85,46 @@
 ;; (use-package tsx-mode
 ;;   :straight '(tsx-mode :type git :host github :repo "orzechowskid/tsx-mode.el" :branch "emacs29"))
 
-(use-package flutter
-  :after dart-mode
-  :bind (:map dart-mode-map
-              ("C-M-x" . #'flutter-run-or-hot-reload))
-  :custom
-  (flutter-sdk-path "/opt/homebrew/bin/flutter"))
+;; (use-package flutter
+;;   :after dart-mode
+;;   :bind (:map dart-mode-map
+;;               ("C-M-x" . #'flutter-run-or-hot-reload))
+;;   :custom
+;;   (flutter-sdk-path "/opt/homebrew/bin/flutter"))
 
 
 ;; ======================================Swift-configs===================================
 ;; .editorconfig file support
-(use-package editorconfig
-    :ensure t
-    :config (editorconfig-mode +1))
-
-;; Swift editing support
-(use-package swift-mode
-    :ensure t
-    :mode "\\.swift\\'"
-    :interpreter "swift")
-
-;; Rainbow delimiters makes nested delimiters easier to understand
-(use-package rainbow-delimiters
-    :ensure t
-    :hook ((prog-mode . rainbow-delimiters-mode)))
-
-;; Company mode (completion)
-;; (use-package company
+;; (use-package editorconfig
 ;;     :ensure t
-;;     :config
-;;     (global-company-mode +1))
+;;     :config (editorconfig-mode +1))
 
-;; ;; Used to interface with swift-lsp.
-;; (use-package lsp-mode
+;; ;; Swift editing support
+;; (use-package swift-mode
 ;;     :ensure t
-;;     :commands lsp
-;;     :hook ((swift-mode . lsp)))
+;;     :mode "\\.swift\\'"
+;;     :interpreter "swift")
 
-;; lsp-mode's UI modules
-(use-package lsp-ui
-    :ensure t)
+;; ;; Rainbow delimiters makes nested delimiters easier to understand
+;; (use-package rainbow-delimiters
+;;     :ensure t
+;;     :hook ((prog-mode . rainbow-delimiters-mode)))
+
+;; ;; Company mode (completion)
+;; ;; (use-package company
+;; ;;     :ensure t
+;; ;;     :config
+;; ;;     (global-company-mode +1))
+
+;; ;; ;; Used to interface with swift-lsp.
+;; ;; (use-package lsp-mode
+;; ;;     :ensure t
+;; ;;     :commands lsp
+;; ;;     :hook ((swift-mode . lsp)))
+
+;; ;; lsp-mode's UI modules
+;; (use-package lsp-ui
+;;     :ensure t)
 
 (use-package leetcode
   :ensure t
