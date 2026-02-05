@@ -2,6 +2,9 @@
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 
+;; Prefer .el when .elc is stale; avoids loading old use-package expansions.
+(setq load-prefer-newer t)
+
 ;; 用 straight.el 做包管理，保证包的可重复构建与独立性
 (defvar bootstrap-version)
 (let* ((straight-url "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el")
