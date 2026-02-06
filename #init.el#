@@ -2,7 +2,7 @@
 
 (require 'packages)
 (require 'config)
-(require 'ui)
+e(require 'ui)
 (require 'keybinding)
 
 ;;server
@@ -17,9 +17,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("791886cabf8c25ac6aeec16fdccd6096a48795578187296a725f8815fedf3874"
-     "01f6946488b7d6f6857e58b2372527b7bd1b63910f38123e72cf00e4c9651895"
-     "3dcc6bb29782f1c1dcb3d58e34d7527e56f4fb67bfbfd8f28b0a0037ef241c47"
+   '("3dcc6bb29782f1c1dcb3d58e34d7527e56f4fb67bfbfd8f28b0a0037ef241c47"
      "1747a02911dec6d66aee4aacfd6b090b823151abcd73a5c68c93c022bf34a7ab"
      default)))
 (custom-set-faces

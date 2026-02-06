@@ -9,3 +9,9 @@ node_modules/
 .cache/
 eln-cache/
 devdocs
+elpa/
+leetcode-env/
+transient/
+url/
+places
+ido.last

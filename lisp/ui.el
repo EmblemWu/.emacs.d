@@ -7,10 +7,10 @@
 
 (setq initial-buffer-choice t)  
 
-(with-eval-after-load 'nyan-mode
-  (setq mode-line-format
-        (list
-         '(:eval (list (nyan-create))))))
+;; (with-eval-after-load 'nyan-mode
+;;   (setq mode-line-format
+;;         (list
+;;          '(:eval (list (nyan-create))))))
 
 ;; ---------------------------
 ;; Fonts
@@ -52,12 +52,12 @@
 ;; 默认不启用，且防止它在启动时抢主题；若需自动切换，请手动 M-x auto-dark-mode
 (with-eval-after-load 'auto-dark
   ;; 确保 alabaster 主题可被找到（local theme/ 或 straight 安装）
-  (add-to-list 'custom-theme-load-path (expand-file-name "theme" user-emacs-directory))
-  (let ((alabaster-dir (when-let ((lib (locate-library "alabaster-theme")))
-                         (file-name-directory lib))))
-    (when alabaster-dir
-      (add-to-list 'custom-theme-load-path alabaster-dir)))
-  (setq auto-dark-themes '((alabaster-dark) (alabaster))
+  ;; (add-to-list 'custom-theme-load-path (expand-file-name "theme" user-emacs-directory))
+  ;; (let ((alabaster-dir (when-let ((lib (locate-library "alabaster-theme")))
+  ;;                        (file-name-directory lib))))
+  ;;   (when alabaster-dir
+  ;;     (add-to-list 'custom-theme-load-path alabaster-dir)))
+  (setq auto-dark-themes '((alabaster-themes-dark-mono) (alabaster-light-mono))
         auto-dark-polling-interval-seconds 5
         auto-dark-allow-osascript nil
         auto-dark-allow-powershell nil))

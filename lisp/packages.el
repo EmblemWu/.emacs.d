@@ -14,17 +14,17 @@
 
 ;; (use-package reddigg)
 
-(use-package emacs-w3m)
+;; (use-package emacs-w3m)
 
 (use-package multiple-cursors)
 
 (use-package fzf)
 
-(use-package nyan-mode
-  :hook
-  (after-init . nyan-mode)
-  :config
-  (setq nyan-animate-nyancat t))
+;; (use-package nyan-mode
+;;   :hook
+;;   (after-init . nyan-mode)
+;;   :config
+;;   (setq nyan-animate-nyancat t))
 
 ;; (use-package mini-frame
 ;; ;;  :hook
@@ -32,9 +32,14 @@
 ;;   :config)
 
 ;; 主题包只在这里声明，具体启用/配置放到 ui.el
-(use-package alabaster-emacs
-  :straight (alabaster-emacs :type git :host github :repo "emblemwu/alabaster-emacs")
-  :defer t)
+;; (use-package alabaster-emacs
+;;   :straight (alabaster-emacs :type git :host github :repo "emblemwu/alabaster-emacs")
+;;   :defer t)
+
+(use-package alabaster-themes
+  :ensure t
+  ;; Interactively select a theme
+  :commands (alabaster-themes-select))
 
 ;; (use-package ample-theme
 ;;   :ensure t
