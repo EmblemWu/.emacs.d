@@ -56,11 +56,15 @@
   ;;                        (file-name-directory lib))))
   ;;   (when alabaster-dir
   ;;     (add-to-list 'custom-theme-load-path alabaster-dir)))
-  (setq auto-dark-themes '((alabaster-themes-dark) (alabaster-light))
+  (setq auto-dark-themes '((alabaster-themes-dark-mono) (alabaster-light-mono))
         auto-dark-polling-interval-seconds 5
         auto-dark-allow-osascript nil
         auto-dark-allow-powershell nil))
 
+(with-eval-after-load 'olivetti-mode
+  (setq display-line-numbers-mode nil))
+
+(setq display-line-numbers-mode 'nil)
 ;; macOS 图形细节：移除装饰 + 最大化（适合 everywhere 浮窗）
 ;; 如需系统原生全屏，把 fullscreen 改为 'fullboth 并保留 (undecorated . nil)
 ;; (setq default-frame-alist
