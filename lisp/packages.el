@@ -151,6 +151,24 @@
     (define-key map (kbd "C-c l t") #'leetcode-try)
     (define-key map (kbd "C-c l s") #'leetcode-submit)))
 
+;; Agent Shell for Codex via ACP.
+(use-package agent-shell
+  :straight (:host github :repo "xenodium/agent-shell" :files ("*.el" "*.png"))
+  :commands (agent-shell agent-shell-openai-start-codex)
+  :bind (("C-c a c" . agent-shell-openai-start-codex)
+         ("C-c a a" . agent-shell))
+  :init
+  (let ((homebrew-bin "/opt/homebrew/bin"))
+    (add-to-list 'exec-path homebrew-bin)
+    (setenv "PATH" (concat homebrew-bin path-separator (getenv "PATH"))))
+  :config
+  (setq agent-shell-preferred-agent-config 'codex
+        agent-shell-openai-authentication
+        (agent-shell-openai-make-authentication :login t)
+        agent-shell-openai-codex-acp-command '("codex-acp")
+        agent-shell-openai-codex-environment
+        (agent-shell-make-environment-variables :inherit-env t)))
+
 ;; sourcekit-lsp support
 ;; (use-package lsp-sourcekit
 ;;     :ensure t
