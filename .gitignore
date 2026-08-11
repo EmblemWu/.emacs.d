@@ -1,8 +1,27 @@
-eaf/
-eshell/
-history
-url/
-*~
+# 包管理
 straight/
-site-lisp/
+elpa/
 node_modules/
+.cache/
+
+# 本地运行时数据
+auto-save-list/
+transient/
+eshell/
+url/
+history
+agent/
+.agent-shell/
+leetcode-env/
+site-lisp/
+eaf/
+
+# 会话状态
+.lsp-session-v1
+ido.last
+places
+
+# 备份/临时文件
+*~
+#*#
+.DS_Store
