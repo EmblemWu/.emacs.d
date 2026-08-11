@@ -4,6 +4,20 @@
 
 ;;;; 通用增强
 (use-package emacs-everywhere)   ; 从任意程序唤起 Emacs 编辑
+
+;; macOS 修复：包自带的 osacompile 用 `-r scpt:128` 把 AppleScript 写进 resource fork，
+;; osascript 无法读取（报 -1758）；且旧属性会残留。每次 ensure 后重新编译并清理属性。
+(defun my/emacs-everywhere-fix-osacompile (&rest _)
+  "Recompile emacs-everywhere's AppleScripts without resource forks."
+  (let ((default-directory emacs-everywhere--dir))
+    (dolist (script '("app-name" "window-title" "window-geometry"))
+      (shell-command
+       (format "xattr -d com.apple.ResourceFork %s 2>/dev/null; xattr -d com.apple.FinderInfo %s 2>/dev/null; osacompile -o %s %s.applescript"
+               script script script script)))))
+
+(with-eval-after-load 'emacs-everywhere
+  (advice-add 'emacs-everywhere--ensure-oscascript-compiled :after
+              #'my/emacs-everywhere-fix-osacompile))
 (use-package hide-mode-line)     ; 按需隐藏 mode-line 的 minor mode
 (use-package mini-frame)         ; 迷你缓冲区浮窗
 
