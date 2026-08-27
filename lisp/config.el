@@ -36,10 +36,10 @@
                (inhibit-same-window . t)
                (window-height . 12)))
 
-;; 编译异常退出时主动弹出输出窗口
-(setq compilation-finish-functions
-      (list (lambda (buf msg)
-              (when (string-match "exited abnormally" msg)
-                (display-buffer buf)))))
+;; 编译异常退出时主动弹出输出窗口（用 add-hook，避免覆盖其它包的钩子）
+(add-hook 'compilation-finish-functions
+          (lambda (buf msg)
+            (when (string-match "exited abnormally" msg)
+              (display-buffer buf))))
 
 (provide 'config)

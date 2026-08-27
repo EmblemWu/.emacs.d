@@ -3,7 +3,18 @@
 ;; 此处不再写 :ensure
 
 ;;;; 通用增强
-(use-package emacs-everywhere)   ; 从任意程序唤起 Emacs 编辑
+(use-package dired-preview
+  :straight (:host github :repo "protesilaos/dired-preview")
+  :hook (dired-mode . dired-preview-mode)
+  :custom
+  (dired-preview-delay 0.2)                  ; 触发预览的延迟时间（秒）
+  (dired-preview-max-size (* 10 1024 1024))  ; 最大预览文件大小（10MB）
+  :bind (:map dired-mode-map
+              ("P" . dired-preview-mode)     ; 按 P 快速切换预览模式
+              ("C-c p" . dired-preview-mode)))
+
+(use-package emacs-everywhere
+  :commands (emacs-everywhere))   ; 从任意程序唤起 Emacs 编辑
 
 ;; macOS 修复：包自带的 osacompile 用 `-r scpt:128` 把 AppleScript 写进 resource fork，
 ;; osascript 无法读取（报 -1758）；且旧属性会残留。每次 ensure 后重新编译并清理属性。
@@ -18,8 +29,8 @@
 (with-eval-after-load 'emacs-everywhere
   (advice-add 'emacs-everywhere--ensure-oscascript-compiled :after
               #'my/emacs-everywhere-fix-osacompile))
-(use-package hide-mode-line)     ; 按需隐藏 mode-line 的 minor mode
-(use-package mini-frame)         ; 迷你缓冲区浮窗
+(use-package hide-mode-line :defer t)   ; 按需隐藏 mode-line（当前未启用，可移除）
+(use-package mini-frame :defer t)       ; 迷你缓冲区浮窗（当前未启用，可移除）
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -31,10 +42,17 @@
 (use-package alabaster-themes
   :commands (alabaster-themes-select))
 (use-package ample-theme :defer t)
-(use-package auto-dark :defer t)   ; 跟随系统深/浅色（启用与配色见 ui.el）
+(use-package auto-dark             ; 跟随系统深/浅色，after-init 时启用 auto-dark-mode
+  :custom
+  (auto-dark-themes '((alabaster-themes-dark) (alabaster-themes-light)))
+  (auto-dark-polling-interval-seconds 5)
+  (auto-dark-allow-osascript nil)
+  (auto-dark-allow-powershell nil)
+  :hook (after-init . auto-dark-mode))
 
 ;;;; Web 前端
-(use-package vue-mode)
+(use-package vue-mode
+  :mode "\\.vue\\'")
 
 (use-package typescript-mode
   :mode ("\\.ts\\'" . typescript-mode)
@@ -75,10 +93,10 @@
 ;;;; AI 辅助
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :hook (prog-mode . copilot-mode)
   :custom
   (copilot-indent-offset-warning-disable t)   ; 抑制 missing indent offset 警告
   :config
-  (add-hook 'prog-mode-hook 'copilot-mode)
   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
   (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion))
 

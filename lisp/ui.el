@@ -24,15 +24,7 @@
     (set-fontset-font t 'kana (font-spec :family cn-font :size 16))
     (set-fontset-font t 'cjk-misc (font-spec :family cn-font :size 16))))
 
-;;;; 主题：启动后自动跟随系统深/浅色
-;; auto-dark 包在 packages.el 中声明；日/夜都用 alabaster 系主题，
-;; 如需不同组合可修改下面两个列表
-(with-eval-after-load 'auto-dark
-  (setq auto-dark-themes '((alabaster-themes-dark) (alabaster-themes-light))
-        auto-dark-polling-interval-seconds 5
-        auto-dark-allow-osascript nil
-        auto-dark-allow-powershell nil))
-(add-hook 'after-init-hook #'auto-dark-mode)
+;;;; 主题：auto-dark 的配置与启用已迁移到 packages.el 的 use-package 中
 
 ;;;; macOS 窗口细节
 ;; 移除装饰 + 最大化；如需系统原生全屏，把 fullscreen 改为 'fullboth 并设 (undecorated . nil)
