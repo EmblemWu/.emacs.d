@@ -20,6 +20,9 @@ eaf/
 .lsp-session-v1
 ido.last
 places
+recentf
+bookmarks
+request/
 
 # 备份/临时文件
 *~

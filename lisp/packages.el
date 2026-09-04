@@ -2,6 +2,49 @@
 ;; 所有包均通过 straight 安装（early-init.el 中已设 straight-use-package-by-default t），
 ;; 此处不再写 :ensure
 
+;;;; 现代补全与交互增强（人性化核心：极速、直观、按键自动提示）
+(use-package which-key
+  :init (which-key-mode 1)
+  :custom
+  (which-key-idle-delay 0.4)             ; 按下前缀键 0.4s 后自动浮现可用按键清单
+  (which-key-separator " → ")
+  (which-key-prefix-prefix "+"))
+
+(use-package vertico
+  :straight (:host github :repo "minad/vertico" :tag "2.8")
+  :init (vertico-mode 1)                 ; 现代垂直 Minibuffer 补全，淘汰横向单行
+  :custom
+  (vertico-count 12)                     ; 显示 12 行候选项
+  (vertico-resize nil)
+  (vertico-cycle t))                     ; 支持循环上下滚动
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic)) ; 空格分隔的多关键词无序模糊匹配（如 "pkg el" 匹配 "packages.el"）
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package marginalia
+  :straight (:host github :repo "minad/marginalia" :tag "2.10")
+  :after vertico
+  :init (marginalia-mode 1))             ; 在候选词旁显示丰富元数据（docstring、文件大小、修改日期）
+
+(use-package consult
+  :after vertico
+  :bind (("C-s" . consult-line)          ; 类似 swiper 的极速单 buffer 搜索与即时预览
+         ("C-x b" . consult-buffer)      ; 现代多功能 buffer/最近文件/书签智能切换
+         ("M-y" . consult-yank-pop)      ; 可视化剪贴板历史粘贴
+         ("C-c r" . consult-ripgrep)))   ; 项目级极速文本搜索
+
+(use-package ace-window
+  :bind ("M-o" . ace-window)             ; 单键快速跳转多分割窗口，彻底告别连按 C-x o
+  :custom
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+(use-package magit
+  :commands (magit-status)
+  :bind ("C-c g" . magit-status))        ; Emacs 殿堂级 Git 操作界面
+
 ;;;; 通用增强
 (use-package dired-preview
   :straight (:host github :repo "protesilaos/dired-preview")
@@ -16,19 +59,19 @@
 (use-package emacs-everywhere
   :commands (emacs-everywhere))   ; 从任意程序唤起 Emacs 编辑
 
-;; macOS 修复：包自带的 osacompile 用 `-r scpt:128` 把 AppleScript 写进 resource fork，
-;; osascript 无法读取（报 -1758）；且旧属性会残留。每次 ensure 后重新编译并清理属性。
-(defun my/emacs-everywhere-fix-osacompile (&rest _)
-  "Recompile emacs-everywhere's AppleScripts without resource forks."
-  (let ((default-directory emacs-everywhere--dir))
-    (dolist (script '("app-name" "window-title" "window-geometry"))
-      (shell-command
-       (format "xattr -d com.apple.ResourceFork %s 2>/dev/null; xattr -d com.apple.FinderInfo %s 2>/dev/null; osacompile -o %s %s.applescript"
-               script script script script)))))
+;; macOS 修复：仅在 macOS 上需要用 osacompile 重新编译 AppleScript 去除 resource fork
+(when-mac
+  (defun my/emacs-everywhere-fix-osacompile (&rest _)
+    "Recompile emacs-everywhere's AppleScripts without resource forks."
+    (let ((default-directory emacs-everywhere--dir))
+      (dolist (script '("app-name" "window-title" "window-geometry"))
+        (shell-command
+         (format "xattr -d com.apple.ResourceFork %s 2>/dev/null; xattr -d com.apple.FinderInfo %s 2>/dev/null; osacompile -o %s %s.applescript"
+                 script script script script)))))
 
-(with-eval-after-load 'emacs-everywhere
-  (advice-add 'emacs-everywhere--ensure-oscascript-compiled :after
-              #'my/emacs-everywhere-fix-osacompile))
+  (with-eval-after-load 'emacs-everywhere
+    (advice-add 'emacs-everywhere--ensure-oscascript-compiled :after
+                #'my/emacs-everywhere-fix-osacompile)))
 (use-package hide-mode-line :defer t)   ; 按需隐藏 mode-line（当前未启用，可移除）
 (use-package mini-frame :defer t)       ; 迷你缓冲区浮窗（当前未启用，可移除）
 
@@ -83,14 +126,14 @@
   :bind (:map dart-mode-map
               ("C-M-x" . #'flutter-run-or-hot-reload))
   :custom
-  (flutter-sdk-path "/opt/homebrew/bin/flutter"))
+  (flutter-sdk-path (or (executable-find "flutter") "/opt/homebrew/bin/flutter")))
 
 ;;;; Swift
 (use-package swift-mode
   :mode "\\.swift\\'"
   :interpreter "swift")
 
-;;;; AI 辅助
+;;;; Copilot
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :hook (prog-mode . copilot-mode)
@@ -105,10 +148,6 @@
   :commands (agent-shell agent-shell-openai-start-codex)
   :bind (("C-c a c" . agent-shell-openai-start-codex)
          ("C-c a a" . agent-shell))
-  :init
-  (let ((homebrew-bin "/opt/homebrew/bin"))
-    (add-to-list 'exec-path homebrew-bin)
-    (setenv "PATH" (concat homebrew-bin path-separator (getenv "PATH"))))
   :config
   (setq agent-shell-preferred-agent-config 'codex
         agent-shell-openai-authentication
@@ -139,4 +178,5 @@
          ("C-c l t" . leetcode-try)
          ("C-c l s" . leetcode-submit)))
 
+;; (use-package emacs-hnreader) ; 占位，待指定正确 recipe
 (provide 'packages)
