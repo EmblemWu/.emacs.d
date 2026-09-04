@@ -155,6 +155,11 @@
   :mode "\\.swift\\'"
   :interpreter "swift")
 
+;;;; Rust
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :hook (rust-mode . eglot-ensure))
+
 ;;;; Copilot
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
