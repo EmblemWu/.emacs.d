@@ -100,48 +100,47 @@
 ;; 启动后立即初次校准一次调色板
 (add-hook 'after-init-hook #'my/apply-term-palette)
 
-;;;; 现代化极简原生 Mode-Line（零插件依赖、Minor Mode 噪音归零、信息分层、零重排开销）
+;;;; 现代化极简原生 Mode-Line（纯排版美学、零 Emoji 杂质、定宽无抖动）
 
 (defun my/mode-line-modified-indicator ()
-  "Buffer 状态指示：修改时亮起醒目红点，只读时显示紫锁，保存后静默留白。"
+  "纯等宽排版状态徽章：彻底消除彩色 Emoji 与异形符号，固定等宽宽度防止跳动。"
   (cond
    (buffer-read-only
-    (propertize " 🔒 " 'face '(:foreground "#7e22ce" :weight bold) 'help-echo "只读 Buffer"))
+    (propertize " [RO] " 'face '(:foreground "#7e22ce" :weight bold) 'help-echo "只读 Buffer"))
    ((buffer-modified-p)
-    (propertize " ● " 'face '(:foreground "#e11d48" :weight bold) 'help-echo "未保存修改"))
-   (t "   ")))
+    (propertize " [+]  " 'face '(:foreground "#cf222e" :weight bold) 'help-echo "未保存修改"))
+   (t
+    (propertize " [ ]  " 'face '(:foreground "#94a3b8") 'help-echo "已保存"))))
 
 (defun my/mode-line-vc-branch ()
-  "仅在受版本控制时提取并显示极简 Git 分支名。"
+  "纯排版 Git 分支标签，字体风格绝对统一。"
   (when (and (boundp 'vc-mode) (stringp vc-mode))
     (let ((branch (if-let ((pos (string-match-p ":" vc-mode)))
                       (substring-no-properties vc-mode (1+ pos))
                     (string-trim vc-mode))))
-      (propertize (format " ⎇ %s " (string-trim branch))
-                  'face '(:foreground "#0e7490" :weight bold)
+      (propertize (format " git:%s " (string-trim branch))
+                  'face '(:foreground "#0e7490" :weight medium)
                   'help-echo (format "Git 分支: %s" branch)))))
 
-;; 扁平化极简状态栏结构排版
+;; 扁平化等宽纯排版状态栏结构
 (setq-default mode-line-format
   (list
-   ;; 1. 窗口前导留白
-   " "
-   ;; 2. 修改状态（未保存红点 / 只读锁 / 静默）
+   ;; 1. 状态徽章（定宽等宽字符：[+] 修改 / [RO] 只读 / [ ] 已保存）
    '(:eval (my/mode-line-modified-indicator))
-   ;; 3. Buffer 名称（加粗）
+   ;; 2. Buffer 文件名（纯文字加粗）
    '(:propertize "%b" face (:weight bold))
-   ;; 4. Git 分支（自动隐藏无用前缀）
+   ;; 3. Git 分支（格式化为统一的 git:branch）
    '(:eval (my/mode-line-vc-branch))
-   ;; 5. 行列号位置（行:列）
+   ;; 4. 坐标位置（行:列）
    '(:propertize "   %l:%c " face (:foreground "#64748b"))
-   ;; 6. 滚动百分比
+   ;; 5. 滚动进度
    '(:propertize " %p " face (:foreground "#94a3b8"))
-   ;; 7. 纯净 Major Mode（彻底过滤所有常驻辅助插件的英文缩写噪音）
+   ;; 6. 纯净 Major Mode（消除一切杂项缩写）
    '(:propertize (" [" mode-name "]") face (:foreground "#64748b"))
-   ;; 8. 尾部微留白
+   ;; 7. 尾部留白
    " "))
 
-;; 动态深浅色高质感扁平微边框
+;; 动态深浅色高质感扁平微边框（精准对齐 Alabaster 主题）
 (defun my/update-mode-line-faces (&optional dark-p)
   "根据深浅色自适应压平 mode-line 边框，消除老旧 3D 浮雕感。"
   (let ((is-dark (if (null dark-p)
@@ -151,20 +150,20 @@
     (if is-dark
         (progn
           (set-face-attribute 'mode-line nil
-                              :background "#1f2428" :foreground "#e1e4e8"
-                              :box '(:line-width 1 :color "#2f363d" :style nil)
+                              :background "#161b22" :foreground "#c9d1d9"
+                              :box '(:line-width 1 :color "#30363d" :style nil)
                               :underline nil)
           (set-face-attribute 'mode-line-inactive nil
-                              :background "#141618" :foreground "#6a737d"
-                              :box '(:line-width 1 :color "#1f2428" :style nil)
+                              :background "#0d1117" :foreground "#6e7681"
+                              :box '(:line-width 1 :color "#21262d" :style nil)
                               :underline nil))
       (progn
         (set-face-attribute 'mode-line nil
-                            :background "#f0f2f5" :foreground "#24292e"
+                            :background "#eaeef2" :foreground "#24292e"
                             :box '(:line-width 1 :color "#d0d7de" :style nil)
                             :underline nil)
         (set-face-attribute 'mode-line-inactive nil
-                            :background "#fafbfc" :foreground "#959da5"
+                            :background "#f6f8fa" :foreground "#8c959f"
                             :box '(:line-width 1 :color "#e1e4e8" :style nil)
                             :underline nil)))))
 
