@@ -73,8 +73,27 @@
     (advice-add 'emacs-everywhere--ensure-oscascript-compiled :after
                 #'my/emacs-everywhere-fix-osacompile)))
 
-(use-package hide-mode-line :defer t)
-(use-package mini-frame :defer t)
+;;;; Native LSP Code Navigation (Eglot + Xref)
+(use-package eglot
+  :hook ((typescript-mode . eglot-ensure)
+         (typescript-tsx-mode . eglot-ensure)
+         (vue-mode . eglot-ensure)
+         (c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (rust-mode . eglot-ensure)
+         (dart-mode . eglot-ensure))
+  :custom
+  (eglot-autoshutdown t)            ; Shutdown language server when last buffer is killed
+  (eglot-sync-connect nil)          ; Non-blocking asynchronous server connection
+  (eglot-events-buffer-size 0)      ; Disable noisy event logging for maximum performance
+  (eglot-send-changes-idle-time 0.2)
+  :config
+  ;; Use Consult for visual xref candidate selection with live preview
+  (setq xref-show-definitions-function #'consult-xref
+        xref-show-xrefs-function #'consult-xref)
+  ;; Disable in-buffer completion popup interference (Copilot handled separately)
+  (setq eglot-stay-out-of '(company corfu)))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))

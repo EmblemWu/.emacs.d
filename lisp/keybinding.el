@@ -44,5 +44,10 @@
 (global-set-key (kbd "C-c p w") #'tab-bar-close-tab)
 (global-set-key (kbd "C-c p r") #'tab-bar-rename-tab)
 
+;;;; 7. Code navigation and cross-references (Eglot / Xref)
+(global-set-key (kbd "M-.") #'xref-find-definitions)
+(global-set-key (kbd "M-,") #'xref-go-back)
+(global-set-key (kbd "M-?") #'xref-find-references)
+
 (provide 'keybinding)
 ;;; keybinding.el ends here
