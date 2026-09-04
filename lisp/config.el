@@ -199,37 +199,107 @@
         (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
       (project-find-file))))
 
-;;;; 11. Terminal mode adaptation (emacs -nw ergonomics & clipboard)
+;;;; 11. Universal terminal and remote SSH adaptation (macOS, Linux, OpenBSD)
 (unless (display-graphic-p)
   ;; Disable textual menu bar row in terminal
   (menu-bar-mode -1)
-  ;; Enable terminal mouse support (clicking, scrolling, window resizing)
+
+  ;; Enable terminal mouse support (clicking, scrolling, window resizing over SSH)
   (xterm-mouse-mode 1)
 
-  ;; macOS terminal clipboard bridge (pbcopy / pbpaste)
-  (when-mac
-    (defun my/terminal-copy-to-pbcopy (text &optional _push)
-      (let ((process-connection-type nil))
-        (let ((proc (start-process "pbcopy" nil "pbcopy")))
-          (process-send-string proc text)
-          (process-send-eof proc))))
-    (defun my/terminal-paste-from-pbpaste ()
-      (shell-command-to-string "pbpaste"))
-    (setq interprogram-cut-function #'my/terminal-copy-to-pbcopy
-          interprogram-paste-function #'my/terminal-paste-from-pbpaste))
+  ;; Eliminate escape sequence latency in TTY (fast ESC response)
+  (setq tty-escape-delay 0.05)
+  (setq-default echo-keystrokes 0.1)
 
-  ;; macOS Option-key dead-character fallbacks in TTY
-  ;; Maps common macOS Option characters directly to Meta shortcuts even if terminal omits Esc+ prefix
-  (when-mac
-    (dolist (mapping '(("≈" . [?\e ?x])  ; Option-x -> M-x
-                       ("ƒ" . [?\e ?f])  ; Option-f -> M-f
-                       ("∫" . [?\e ?b])  ; Option-b -> M-b
-                       ("π" . [?\e ?p])  ; Option-p -> M-p
-                       ("˜" . [?\e ?n])  ; Option-n -> M-n
-                       ("√" . [?\e ?v])  ; Option-v -> M-v
-                       ("∑" . [?\e ?w])  ; Option-w -> M-w
-                       ("∂" . [?\e ?d]))) ; Option-d -> M-d
-      (define-key local-function-key-map (car mapping) (cdr mapping)))))
+  ;; Universal OSC 52 clipboard: pipes text through SSH stdout back to client machine
+  ;; Compatible with iTerm2, Ghostty, WezTerm, Alacritty, Kitty, Blink Shell, tmux
+  (defun my/osc52-copy (text &optional _push)
+    "Send TEXT to the client system clipboard via terminal OSC 52 escape sequence."
+    (when (and text (stringp text))
+      (let* ((b64 (base64-encode-string (encode-coding-string text 'utf-8) t))
+             (inside-tmux (or (getenv "TMUX") (string-prefix-p "screen" (or (getenv "TERM") ""))))
+             (osc52-seq
+              (if inside-tmux
+                  (format "\ePtmux;\e\e]52;c;%s\a\e\\" b64)
+                (format "\e]52;c;%s\a" b64))))
+        (send-string-to-terminal osc52-seq))))
+
+  ;; Local clipboard paste fallback across OS platforms
+  (defun my/terminal-paste ()
+    "Retrieve clipboard content using local platform utilities when available."
+    (cond
+     ((and sys/mac-p (executable-find "pbpaste"))
+      (shell-command-to-string "pbpaste"))
+     ((and (executable-find "wl-paste") (getenv "WAYLAND_DISPLAY"))
+      (shell-command-to-string "wl-paste --no-newline"))
+     ((executable-find "xclip")
+      (shell-command-to-string "xclip -selection clipboard -o"))
+     ((executable-find "xsel")
+      (shell-command-to-string "xsel --clipboard --output"))
+     (t nil)))
+
+  (setq interprogram-cut-function
+        (lambda (text &optional push)
+          ;; Primary: Send OSC 52 for remote SSH and modern terminals
+          (my/osc52-copy text push)
+          ;; Secondary: Local clipboard fallback
+          (cond
+           ((and sys/mac-p (executable-find "pbcopy"))
+            (let ((process-connection-type nil))
+              (let ((proc (start-process "pbcopy" nil "pbcopy")))
+                (process-send-string proc text)
+                (process-send-eof proc))))
+           ((and (executable-find "wl-copy") (getenv "WAYLAND_DISPLAY"))
+            (let ((process-connection-type nil))
+              (let ((proc (start-process "wl-copy" nil "wl-copy")))
+                (process-send-string proc text)
+                (process-send-eof proc))))
+           ((executable-find "xclip")
+            (let ((process-connection-type nil))
+              (let ((proc (start-process "xclip" nil "xclip" "-selection" "clipboard")))
+                (process-send-string proc text)
+                (process-send-eof proc)))))))
+
+  (setq interprogram-paste-function #'my/terminal-paste)
+
+  ;; Universal TTY / SSH escape key sequence decoding (VT100 / Xterm / Linux / OpenBSD)
+  (let ((map (if (boundp 'input-decode-map) input-decode-map local-function-key-map)))
+    ;; Ctrl + Arrow keys
+    (define-key map "\e[1;5A" [C-up])
+    (define-key map "\e[1;5B" [C-down])
+    (define-key map "\e[1;5C" [C-right])
+    (define-key map "\e[1;5D" [C-left])
+    ;; Alt / Meta + Arrow keys
+    (define-key map "\e[1;3A" [M-up])
+    (define-key map "\e[1;3B" [M-down])
+    (define-key map "\e[1;3C" [M-right])
+    (define-key map "\e[1;3D" [M-left])
+    ;; Shift + Arrow keys
+    (define-key map "\e[1;2A" [S-up])
+    (define-key map "\e[1;2B" [S-down])
+    (define-key map "\e[1;2C" [S-right])
+    (define-key map "\e[1;2D" [S-left])
+    ;; Home, End, PageUp, PageDown, Delete
+    (define-key map "\e[1~" [home])
+    (define-key map "\e[4~" [end])
+    (define-key map "\e[H"  [home])
+    (define-key map "\e[F"  [end])
+    (define-key map "\e[5~" [prior])
+    (define-key map "\e[6~" [next])
+    (define-key map "\e[3~" [deletechar])
+    ;; macOS Option dead character fallbacks in TTY
+    (when-mac
+      (dolist (mapping '(("≈" . [?\e ?x])
+                         ("ƒ" . [?\e ?f])
+                         ("∫" . [?\e ?b])
+                         ("π" . [?\e ?p])
+                         ("˜" . [?\e ?n])
+                         ("√" . [?\e ?v])
+                         ("∑" . [?\e ?w])
+                         ("∂" . [?\e ?d])
+                         ("≤" . [?\e ?<])
+                         ("≥" . [?\e ?>])))
+        (define-key map (car mapping) (cdr mapping))))))
 
 (provide 'config)
 ;;; config.el ends here
