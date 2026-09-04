@@ -29,6 +29,7 @@
 (global-set-key (kbd "C-c o t") (lambda () (interactive) (find-file "~/org/tasks.org")))
 (global-set-key (kbd "C-c o i") (lambda () (interactive) (find-file "~/org/inbox.org")))
 (global-set-key (kbd "C-c o n") (lambda () (interactive) (find-file "~/org/notes.org")))
+(global-set-key (kbd "C-c o b") (lambda () (interactive) (find-file "~/org/buy.org")))
 
 ;;;; 5. Floating drawer terminal
 (global-set-key (kbd "C-c t") #'my/toggle-terminal)

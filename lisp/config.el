@@ -93,7 +93,8 @@
 (setq org-directory (expand-file-name "~/org")
       org-default-notes-file (expand-file-name "inbox.org" org-directory)
       org-agenda-files (list (expand-file-name "inbox.org" org-directory)
-                             (expand-file-name "tasks.org" org-directory))
+                             (expand-file-name "tasks.org" org-directory)
+                             (expand-file-name "buy.org" org-directory))
       org-todo-keywords '((sequence "TODO(t)" "DOING(i!)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)"))
       org-log-done 'time
       org-log-into-drawer t
@@ -112,9 +113,13 @@
          (file+headline "~/org/inbox.org" "Quick Notes")
          "* %?\n  Captured: %U\n  %i"
          :empty-lines 1)
-        ("n" "Knowledge Note" entry
-         (file+headline "~/org/notes.org" "Knowledge & Notes")
-         "* %? :NOTE:\n  Captured: %U\n  Source: %a\n\n  %i"
+        ("n" "Note" entry
+         (file+headline "~/org/notes.org" "Notes")
+         "* %?\n  Captured: %U\n  Source: %a\n\n  %i"
+         :empty-lines 1)
+        ("b" "Buy" entry
+         (file+headline "~/org/buy.org" "Wishlist")
+         "* TODO %?\n  Captured: %U\n  Price: \n  Link: %a\n  %i"
          :empty-lines 1)))
 
 ;;;; 8. Floating drawer terminal
