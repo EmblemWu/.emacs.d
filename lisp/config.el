@@ -356,7 +356,7 @@
                 (switch-to-buffer (current-buffer))
                 (message "Streamed %s/%s on-demand. Press C-x C-j to return to directory." repo file-path))
             (kill-buffer (current-buffer))
-            (user-error "Failed to fetch %s/%s" repo file-path))))))))
+            (user-error "Failed to fetch %s/%s" repo file-path)))))))
 
 (defun my/gh-file-jump-to-dired ()
   "Jump back from streamed file to its parent GitHub Dired buffer."
