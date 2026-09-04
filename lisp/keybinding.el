@@ -43,6 +43,7 @@
 (global-set-key (kbd "C-c p t") #'tab-bar-new-tab)
 (global-set-key (kbd "C-c p w") #'tab-bar-close-tab)
 (global-set-key (kbd "C-c p r") #'tab-bar-rename-tab)
+(global-set-key (kbd "C-c p g") #'my/github-open-repo)
 
 ;;;; 7. Code navigation and cross-references (Eglot / Xref)
 (global-set-key (kbd "M-.") #'xref-find-definitions)

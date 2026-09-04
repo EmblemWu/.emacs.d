@@ -164,5 +164,40 @@
 
 (tab-bar-mode 1)
 
+;;;; 10. Instant GitHub repository explorer (Shallow clone to /tmp with full LSP)
+(defvar my/github-cache-dir
+  (expand-file-name "gh-repos" temporary-file-directory)
+  "Temporary cache directory for shallow-cloned GitHub repositories.")
+
+(defun my/github-open-repo (repo-input)
+  "Prompt for a GitHub repository (owner/repo or URL), shallow-clone to /tmp, and open via project."
+  (interactive
+   (list (read-string "GitHub repository (owner/repo or URL): ")))
+  (let* ((clean-input (string-trim repo-input))
+         (repo-slug
+          (cond
+           ((string-match "github\\.com[:/]\\([^/]+/[^/.]+?\\)\\(?:\\.git\\)?$" clean-input)
+            (match-string 1 clean-input))
+           ((string-match "^\\([^/]+/[^/.]+\\)$" clean-input)
+            (match-string 1 clean-input))
+           (t (user-error "Invalid repository format. Please use 'owner/repo' or a GitHub URL"))))
+         (target-dir (expand-file-name repo-slug my/github-cache-dir))
+         (clone-url (format "https://github.com/%s.git" repo-slug)))
+    (unless (file-directory-p target-dir)
+      (make-directory (file-name-directory target-dir) t)
+      (message "Shallow cloning %s into temporary cache..." repo-slug)
+      (let ((exit-code
+             (call-process "git" nil nil nil
+                           "clone" "--depth=1" "--single-branch"
+                           clone-url target-dir)))
+        (unless (zerop exit-code)
+          (user-error "Failed to clone repository: %s" repo-slug))))
+    ;; Open repository in a dedicated tab and trigger project file finder
+    (let ((default-directory (file-name-as-directory target-dir)))
+      (when (fboundp 'tab-bar-new-tab)
+        (tab-bar-new-tab)
+        (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
+      (project-find-file))))
+
 (provide 'config)
 ;;; config.el ends here
