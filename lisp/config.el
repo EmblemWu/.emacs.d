@@ -160,6 +160,7 @@
       tab-bar-new-button-show nil        ; Hide new tab button
       tab-bar-tab-hints t                ; Show tab number indicators
       tab-bar-select-tab-modifiers '(meta) ; Switch tabs directly via M-1, M-2, etc.
+      tab-bar-separator " "              ; Clean subtle space between tabs
       project-vc-extra-root-markers '(".git" "package.json" "Cargo.toml"))
 
 (tab-bar-mode 1)

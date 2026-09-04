@@ -165,13 +165,61 @@
                             :underline nil)))))
 
 ;; Register theme hooks
-(add-hook 'auto-dark-light-mode-hook (lambda () (my/update-mode-line-faces nil)))
-(add-hook 'auto-dark-dark-mode-hook  (lambda () (my/update-mode-line-faces t)))
+(add-hook 'auto-dark-light-mode-hook (lambda ()
+                                       (my/apply-term-palette nil)
+                                       (my/update-mode-line-faces nil)
+                                       (my/update-tab-bar-faces nil)))
+(add-hook 'auto-dark-dark-mode-hook  (lambda ()
+                                       (my/apply-term-palette t)
+                                       (my/update-mode-line-faces t)
+                                       (my/update-tab-bar-faces t)))
 (add-hook 'enable-theme-functions
           (lambda (theme)
-            (my/update-mode-line-faces (string-match-p "dark" (symbol-name theme)))))
+            (let ((dark-p (string-match-p "dark" (symbol-name theme))))
+              (my/apply-term-palette dark-p)
+              (my/update-mode-line-faces dark-p)
+              (my/update-tab-bar-faces dark-p))))
+
+;;;; Modern Flat Tab-Bar Styling (Seamless Alabaster integration, 0-bevel flat tabs)
+
+(defun my/update-tab-bar-faces (&optional dark-p)
+  "Adapt tab-bar faces to Alabaster theme, removing 3D bevels for a modern flat aesthetic."
+  (let ((is-dark (if (null dark-p)
+                     (or (eq (frame-parameter nil 'background-mode) 'dark)
+                         (member 'alabaster-themes-dark custom-enabled-themes))
+                   dark-p)))
+    (if is-dark
+        (progn
+          ;; Container bar
+          (set-face-attribute 'tab-bar nil
+                              :background "#0e1415" :foreground "#8b949e"
+                              :box nil :underline '(:color "#21262d" :style line))
+          ;; Active tab
+          (set-face-attribute 'tab-bar-tab nil
+                              :background "#161b22" :foreground "#f0f6fc"
+                              :weight 'bold :box nil
+                              :underline '(:color "#58a6ff" :style line :position 2))
+          ;; Inactive tab
+          (set-face-attribute 'tab-bar-tab-inactive nil
+                              :background "#0e1415" :foreground "#6e7681"
+                              :weight 'normal :box nil :underline nil))
+      (progn
+        ;; Container bar
+        (set-face-attribute 'tab-bar nil
+                            :background "#f7f7f7" :foreground "#57606a"
+                            :box nil :underline '(:color "#e1e4e8" :style line))
+        ;; Active tab
+        (set-face-attribute 'tab-bar-tab nil
+                            :background "#eaeef2" :foreground "#24292e"
+                            :weight 'bold :box nil
+                            :underline '(:color "#0969da" :style line :position 2))
+        ;; Inactive tab
+        (set-face-attribute 'tab-bar-tab-inactive nil
+                            :background "#f7f7f7" :foreground "#8c959f"
+                            :weight 'normal :box nil :underline nil)))))
 
 (add-hook 'after-init-hook #'my/update-mode-line-faces)
+(add-hook 'after-init-hook #'my/update-tab-bar-faces)
 
 (provide 'ui)
 ;;; ui.el ends here
