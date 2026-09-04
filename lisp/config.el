@@ -155,7 +155,7 @@
   (define-key term-mode-map (kbd "C-c t") #'my/toggle-terminal))
 
 ;;;; 9. Workspaces and project isolation (Tab-bar + Project.el)
-(setq tab-bar-show 1                     ; Show tab-bar only when multiple tabs exist
+(setq tab-bar-show nil                   ; Hide top tab-bar completely for zero visual distraction
       tab-bar-close-button-show nil      ; Hide tab close buttons
       tab-bar-new-button-show nil        ; Hide new tab button
       tab-bar-tab-hints t                ; Show tab number indicators
@@ -164,6 +164,12 @@
       project-vc-extra-root-markers '(".git" "package.json" "Cargo.toml"))
 
 (tab-bar-mode 1)
+
+;; Transient workspace switch notification in echo area
+(add-hook 'tab-bar-tab-post-select-functions
+          (lambda (_prev current)
+            (let ((name (alist-get 'name current)))
+              (message "Workspace: %s" name))))
 
 ;;;; 10. Instant GitHub repository explorer (Shallow clone to /tmp with full LSP)
 (defvar my/github-cache-dir

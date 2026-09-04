@@ -119,6 +119,29 @@
                   'face '(:foreground "#0e7490" :weight medium)
                   'help-echo (format "Git branch: %s" branch)))))
 
+(defun my/mode-line-workspace-indicator ()
+  "Display concise workspace badges in modeline only when multiple tabs exist."
+  (when (and (fboundp 'tab-bar-tabs) (> (length (tab-bar-tabs)) 1))
+    (let ((tabs (tab-bar-tabs))
+          (idx 0)
+          (parts nil))
+      (dolist (tab tabs)
+        (setq idx (1+ idx))
+        (let* ((is-current (alist-get 'current-tab tab))
+               (name (or (alist-get 'name tab) (format "tab%d" idx)))
+               (label (if (> (length tabs) 3)
+                          (format "%d" idx)
+                        (format "%d:%s" idx (truncate-string-to-width name 8 nil nil "…"))))
+               (part (if is-current
+                         (propertize (format " %s* " label)
+                                     'face '(:foreground "#0969da" :weight bold)
+                                     'help-echo (format "Workspace %d: %s (Active)" idx name))
+                       (propertize (format " %s " label)
+                                   'face '(:foreground "#64748b")
+                                   'help-echo (format "Workspace %d: %s (press M-%d to switch)" idx name idx)))))
+          (push part parts)))
+      (concat " [" (mapconcat #'identity (nreverse parts) "") "]"))))
+
 ;; Minimalist modeline layout
 (setq-default mode-line-format
   (list
@@ -126,15 +149,17 @@
    '(:eval (my/mode-line-modified-indicator))
    ;; 2. Buffer name in bold
    '(:propertize "%b" face (:weight bold))
-   ;; 3. Git branch (git:branch)
+   ;; 3. Dynamic workspace badges (appears only when multiple workspaces exist)
+   '(:eval (my/mode-line-workspace-indicator))
+   ;; 4. Git branch (git:branch)
    '(:eval (my/mode-line-vc-branch))
-   ;; 4. Line and column coordinates
+   ;; 5. Line and column coordinates
    '(:propertize "   %l:%c " face (:foreground "#64748b"))
-   ;; 5. Scroll percentage
+   ;; 6. Scroll percentage
    '(:propertize " %p " face (:foreground "#94a3b8"))
-   ;; 6. Clean major mode indicator
+   ;; 7. Clean major mode indicator
    '(:propertize (" [" mode-name "]") face (:foreground "#64748b"))
-   ;; 7. Trailing space
+   ;; 8. Trailing space
    " "))
 
 ;; Dynamic light/dark modeline faces (hairline border, flat modern aesthetic)
