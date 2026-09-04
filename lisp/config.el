@@ -219,38 +219,165 @@
              (message "Failed to clone %s. Check buffer %s"
                       repo-slug (buffer-name (process-buffer proc)))))))))))
 
-(defun my/github-view-file (repo-input file-path)
-  "Open a single file from a GitHub repository on-demand without cloning (VFS stream)."
-  (interactive
-   (let* ((repo (read-string "GitHub repository (owner/repo): "))
-          (path (read-string (format "File path in %s (e.g. README.md, src/main.rs): " repo))))
-     (list repo path)))
-  (let* ((clean-repo (string-trim repo-input))
-         (repo-slug
-          (cond
-           ((string-match "github\\.com[:/]\\([^/]+/[^/.]+?\\)\\(?:\\.git\\)?$" clean-repo)
-            (match-string 1 clean-repo))
-           ((string-match "^\\([^/]+/[^/.]+\\)$" clean-repo)
-            (match-string 1 clean-repo))
-           (t (user-error "Invalid repository format. Use 'owner/repo'"))))
-         (clean-path (string-trim file-path))
-         (buf-name (format "*gh: %s/%s*" repo-slug clean-path))
-         (raw-url (format "https://raw.githubusercontent.com/%s/HEAD/%s" repo-slug clean-path)))
-    (with-current-buffer (get-buffer-create buf-name)
+;;;; 10. Virtual GitHub Explorer (Dired-like interactive remote browser, 0-clone VFS)
+(defvar-local my/gh-dired-repo nil "Current GitHub repository slug (owner/repo).")
+(defvar-local my/gh-dired-path "" "Current directory path within the repository.")
+(defvar-local my/gh-file-repo nil "Repository slug for streamed file buffer.")
+(defvar-local my/gh-file-dir nil "Parent directory path for streamed file buffer.")
+
+(defvar my/gh-dired-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") #'my/gh-dired-open)
+    (define-key map (kbd "f")   #'my/gh-dired-open)
+    (define-key map (kbd "e")   #'my/gh-dired-open)
+    (define-key map (kbd "^")   #'my/gh-dired-up)
+    (define-key map (kbd "C-x C-j") #'my/gh-dired-up)
+    (define-key map (kbd "g")   #'my/gh-dired-refresh)
+    (define-key map (kbd "q")   #'quit-window)
+    (define-key map (kbd "n")   #'next-line)
+    (define-key map (kbd "p")   #'previous-line)
+    map)
+  "Keymap for `my/gh-dired-mode`.")
+
+(define-derived-mode my/gh-dired-mode special-mode "GH-Dired"
+  "Major mode for browsing remote GitHub repositories interactively like Dired."
+  (setq-local truncate-lines t)
+  (setq-local buffer-read-only t))
+
+(defun my/gh-dired-format-size (size)
+  "Format byte SIZE into human-readable string."
+  (cond
+   ((< size 1024) (format "%4dB" size))
+   ((< size (* 1024 1024)) (format "%5.1fK" (/ (float size) 1024)))
+   (t (format "%5.1fM" (/ (float size) (* 1024 1024))))))
+
+(defun my/gh-dired-render (repo path)
+  "Fetch directory contents via GitHub API and render in a Dired-style buffer."
+  (let* ((clean-path (string-trim (or path "") "/"))
+         (buf-name (if (string-empty-p clean-path)
+                       (format "*gh: %s*" repo)
+                     (format "*gh: %s/%s*" repo clean-path)))
+         (buf (get-buffer-create buf-name))
+         (api-cmd (if (string-empty-p clean-path)
+                      (format "gh api repos/%s/contents" repo)
+                    (format "gh api repos/%s/contents/%s" repo clean-path))))
+    (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (message "Streaming %s/%s from GitHub..." repo-slug clean-path)
+        (insert (format "  GitHub Remote: https://github.com/%s\n" repo))
+        (insert (format "  Directory: /%s\n\n" clean-path))
+        ;; Parent directory navigation entry if not at root
+        (unless (string-empty-p clean-path)
+          (let ((start (point)))
+            (insert "  [dir]        ..  (Parent Directory)\n")
+            (put-text-property start (point) 'gh-type 'up)))
+        (message "Fetching GitHub directory %s/%s..." repo clean-path)
+        (condition-case err
+            (let* ((json-str (shell-command-to-string api-cmd))
+                   (items (json-parse-string json-str :array-type 'list :object-type 'alist))
+                   (dirs (seq-filter (lambda (x) (equal (alist-get 'type x) "dir")) items))
+                   (files (seq-filter (lambda (x) (equal (alist-get 'type x) "file")) items)))
+              ;; Insert directories
+              (dolist (d (sort dirs (lambda (a b) (string< (alist-get 'name a) (alist-get 'name b)))))
+                (let* ((name (alist-get 'name d))
+                       (subpath (alist-get 'path d))
+                       (start (point)))
+                  (insert (format "  [dir]       %s/\n" name))
+                  (put-text-property start (point) 'gh-type 'dir)
+                  (put-text-property start (point) 'gh-path subpath)
+                  (put-text-property start (point) 'gh-name name)))
+              ;; Insert files
+              (dolist (f (sort files (lambda (a b) (string< (alist-get 'name a) (alist-get 'name b)))))
+                (let* ((name (alist-get 'name f))
+                       (subpath (alist-get 'path f))
+                       (size (or (alist-get 'size f) 0))
+                       (start (point)))
+                  (insert (format "  [file] %6s  %s\n" (my/gh-dired-format-size size) name))
+                  (put-text-property start (point) 'gh-type 'file)
+                  (put-text-property start (point) 'gh-path subpath)
+                  (put-text-property start (point) 'gh-name name))))
+          (error
+           (insert (format "\n  Error fetching directory: %s\n" (error-message-string err))))))
+      (my/gh-dired-mode)
+      (setq-local my/gh-dired-repo repo)
+      (setq-local my/gh-dired-path clean-path)
+      (goto-char (point-min))
+      (forward-line 3))
+    (switch-to-buffer buf)))
+
+(defun my/gh-dired-open ()
+  "Open file or enter directory at point in GitHub Dired."
+  (interactive)
+  (let ((type (get-text-property (point) 'gh-type))
+        (path (get-text-property (point) 'gh-path))
+        (repo my/gh-dired-repo))
+    (cond
+     ((eq type 'up)
+      (my/gh-dired-up))
+     ((eq type 'dir)
+      (my/gh-dired-render repo path))
+     ((eq type 'file)
+      (my/gh-dired-stream-file repo path my/gh-dired-path))
+     (t (message "No GitHub file or directory at point.")))))
+
+(defun my/gh-dired-up ()
+  "Navigate up to parent directory in GitHub Dired."
+  (interactive)
+  (if (or (null my/gh-dired-path) (string-empty-p my/gh-dired-path))
+      (message "Already at repository root.")
+    (let* ((parent-path (file-name-directory (directory-file-name my/gh-dired-path)))
+           (clean-parent (if parent-path (directory-file-name parent-path) "")))
+      (my/gh-dired-render my/gh-dired-repo clean-parent))))
+
+(defun my/gh-dired-refresh ()
+  "Refresh current GitHub Dired buffer."
+  (interactive)
+  (my/gh-dired-render my/gh-dired-repo my/gh-dired-path))
+
+(defun my/gh-dired-stream-file (repo file-path parent-dir)
+  "Stream single file from GitHub into buffer with syntax highlighting and dired-jump support."
+  (let* ((buf-name (format "*gh: %s/%s*" repo file-path))
+         (buf (get-buffer-create buf-name))
+         (raw-url (format "https://raw.githubusercontent.com/%s/HEAD/%s" repo file-path)))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (message "Streaming %s/%s from GitHub..." repo file-path)
         (let ((exit-code (call-process "curl" nil t nil "-sL" raw-url)))
           (if (and (zerop exit-code) (> (buffer-size) 0))
               (progn
-                (setq buffer-file-name clean-path)
+                (setq buffer-file-name file-path)
                 (set-auto-mode)
                 (setq buffer-file-name nil)
+                (setq-local my/gh-file-repo repo)
+                (setq-local my/gh-file-dir parent-dir)
+                (local-set-key (kbd "C-x C-j") #'my/gh-file-jump-to-dired)
                 (read-only-mode 1)
                 (switch-to-buffer (current-buffer))
-                (message "Streamed %s/%s on-demand (0 bytes cloned)." repo-slug clean-path))
+                (message "Streamed %s/%s on-demand. Press C-x C-j to return to directory." repo file-path))
             (kill-buffer (current-buffer))
-            (user-error "Failed to fetch %s/%s from GitHub" repo-slug clean-path)))))))
+            (user-error "Failed to fetch %s/%s" repo file-path))))))))
+
+(defun my/gh-file-jump-to-dired ()
+  "Jump back from streamed file to its parent GitHub Dired buffer."
+  (interactive)
+  (if (and my/gh-file-repo (boundp 'my/gh-file-dir))
+      (my/gh-dired-render my/gh-file-repo my/gh-file-dir)
+    (call-interactively #'dired-jump)))
+
+(defun my/github-browse-repo (repo-input)
+  "Browse remote GitHub repository interactively like Dired without cloning (0 bytes download)."
+  (interactive
+   (list (read-string "GitHub repository to browse (owner/repo or URL): ")))
+  (let* ((clean-input (string-trim repo-input))
+         (repo-slug
+          (cond
+           ((string-match "github\\.com[:/]\\([^/]+/[^/.]+?\\)\\(?:\\.git\\)?$" clean-input)
+            (match-string 1 clean-input))
+           ((string-match "^\\([^/]+/[^/.]+\\)$" clean-input)
+            (match-string 1 clean-input))
+           (t (user-error "Invalid repository format. Use 'owner/repo'")))))
+    (my/gh-dired-render repo-slug "")))
 
 ;;;; 11. Universal terminal and remote SSH adaptation (macOS, Linux, OpenBSD)
 (unless (display-graphic-p)
