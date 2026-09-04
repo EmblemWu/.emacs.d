@@ -197,6 +197,13 @@
       (when (fboundp 'tab-bar-new-tab)
         (tab-bar-new-tab)
         (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
+      ;; Trigger asynchronous background indexing for Rust projects if Cargo.toml exists
+      (when (and (file-exists-p (expand-file-name "Cargo.toml" target-dir))
+                 (executable-find "cargo"))
+        (message "Background indexing Rust dependencies for rust-analyzer...")
+        (make-process :name "cargo-check-init"
+                      :buffer "*cargo-check-init*"
+                      :command '("cargo" "check" "--quiet")))
       (project-find-file))))
 
 ;;;; 11. Universal terminal and remote SSH adaptation (macOS, Linux, OpenBSD)
