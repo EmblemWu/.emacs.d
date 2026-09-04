@@ -169,8 +169,23 @@
   (expand-file-name "gh-repos" temporary-file-directory)
   "Temporary cache directory for shallow-cloned GitHub repositories.")
 
+(defun my/github--open-cached-repo (target-dir)
+  "Open cached repository in a dedicated tab with project integration."
+  (let ((default-directory (file-name-as-directory target-dir)))
+    (when (fboundp 'tab-bar-new-tab)
+      (tab-bar-new-tab)
+      (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
+    ;; Trigger asynchronous background indexing for Rust projects if Cargo.toml exists
+    (when (and (file-exists-p (expand-file-name "Cargo.toml" target-dir))
+               (executable-find "cargo"))
+      (message "Background indexing Rust dependencies for rust-analyzer...")
+      (make-process :name "cargo-check-init"
+                    :buffer "*cargo-check-init*"
+                    :command '("cargo" "check" "--quiet")))
+    (project-find-file)))
+
 (defun my/github-open-repo (repo-input)
-  "Prompt for a GitHub repository (owner/repo or URL), shallow-clone to /tmp, and open via project."
+  "Prompt for a GitHub repository (owner/repo or URL), shallow-clone asynchronously, and open via project."
   (interactive
    (list (read-string "GitHub repository (owner/repo or URL): ")))
   (let* ((clean-input (string-trim repo-input))
@@ -183,28 +198,26 @@
            (t (user-error "Invalid repository format. Please use 'owner/repo' or a GitHub URL"))))
          (target-dir (expand-file-name repo-slug my/github-cache-dir))
          (clone-url (format "https://github.com/%s.git" repo-slug)))
-    (unless (file-directory-p target-dir)
+    (if (file-directory-p target-dir)
+        ;; Already cached: open immediately without network overhead
+        (my/github--open-cached-repo target-dir)
+      ;; Clone asynchronously to ensure Emacs UI remains completely unblocked
       (make-directory (file-name-directory target-dir) t)
-      (message "Shallow cloning %s into temporary cache..." repo-slug)
-      (let ((exit-code
-             (call-process "git" nil nil nil
-                           "clone" "--depth=1" "--single-branch"
-                           clone-url target-dir)))
-        (unless (zerop exit-code)
-          (user-error "Failed to clone repository: %s" repo-slug))))
-    ;; Open repository in a dedicated tab and trigger project file finder
-    (let ((default-directory (file-name-as-directory target-dir)))
-      (when (fboundp 'tab-bar-new-tab)
-        (tab-bar-new-tab)
-        (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
-      ;; Trigger asynchronous background indexing for Rust projects if Cargo.toml exists
-      (when (and (file-exists-p (expand-file-name "Cargo.toml" target-dir))
-                 (executable-find "cargo"))
-        (message "Background indexing Rust dependencies for rust-analyzer...")
-        (make-process :name "cargo-check-init"
-                      :buffer "*cargo-check-init*"
-                      :command '("cargo" "check" "--quiet")))
-      (project-find-file))))
+      (let ((clone-buf (get-buffer-create (format "*clone: %s*" repo-slug))))
+        (message "Cloning %s in background (shallow)..." repo-slug)
+        (make-process
+         :name (format "git-clone-%s" repo-slug)
+         :buffer clone-buf
+         :command (list "git" "clone" "--depth=1" "--single-branch" clone-url target-dir)
+         :sentinel
+         (lambda (proc event)
+           (cond
+            ((string-match-p "finished" event)
+             (message "Successfully cloned %s! Opening project workspace..." repo-slug)
+             (my/github--open-cached-repo target-dir))
+            ((string-match-p "\\(exited\\|failed\\)" event)
+             (message "Failed to clone %s. Check buffer %s"
+                      repo-slug (buffer-name (process-buffer proc)))))))))))
 
 ;;;; 11. Universal terminal and remote SSH adaptation (macOS, Linux, OpenBSD)
 (unless (display-graphic-p)
