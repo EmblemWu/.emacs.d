@@ -20,13 +20,18 @@
   (declare (indent 0))
   `(when sys/bsd-p ,@body))
 
-;; 通用环境 PATH 解析（自动探测 Homebrew / Unix local / 用户 bin，兼顾 Mac/Linux/OpenBSD）
-(dolist (dir (list "/opt/homebrew/bin"
-                   "/usr/local/bin"
-                   (expand-file-name "~/.local/bin")))
-  (when (file-directory-p dir)
-    (add-to-list 'exec-path dir)
-    (setenv "PATH" (concat dir path-separator (getenv "PATH")))))
+;; 通用环境 PATH 解析（自动探测用户 bin / Unix local / Homebrew）
+;; 注意：遍历顺序必须由低到高，确保 /opt/homebrew/bin 最终位于 PATH 最顶端，优先使用最新版 Node/工具链
+(let ((path-dirs (if sys/mac-p
+                     (list (expand-file-name "~/.local/bin")
+                           "/usr/local/bin"
+                           "/opt/homebrew/bin")
+                   (list (expand-file-name "~/.local/bin")
+                         "/usr/local/bin"))))
+  (dolist (dir path-dirs)
+    (when (file-directory-p dir)
+      (add-to-list 'exec-path dir)
+      (setenv "PATH" (concat dir path-separator (getenv "PATH"))))))
 
 ;;;; 1. 极致启动提速（抑制文件处理与启动开销）
 ;; 启动期间临时清空 file-name-handler-alist，跳过每个 require 的正则匹配，启动后自动恢复
