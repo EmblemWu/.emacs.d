@@ -199,5 +199,37 @@
         (tab-bar-rename-tab (file-name-nondirectory (directory-file-name target-dir))))
       (project-find-file))))
 
+;;;; 11. Terminal mode adaptation (emacs -nw ergonomics & clipboard)
+(unless (display-graphic-p)
+  ;; Disable textual menu bar row in terminal
+  (menu-bar-mode -1)
+  ;; Enable terminal mouse support (clicking, scrolling, window resizing)
+  (xterm-mouse-mode 1)
+
+  ;; macOS terminal clipboard bridge (pbcopy / pbpaste)
+  (when-mac
+    (defun my/terminal-copy-to-pbcopy (text &optional _push)
+      (let ((process-connection-type nil))
+        (let ((proc (start-process "pbcopy" nil "pbcopy")))
+          (process-send-string proc text)
+          (process-send-eof proc))))
+    (defun my/terminal-paste-from-pbpaste ()
+      (shell-command-to-string "pbpaste"))
+    (setq interprogram-cut-function #'my/terminal-copy-to-pbcopy
+          interprogram-paste-function #'my/terminal-paste-from-pbpaste))
+
+  ;; macOS Option-key dead-character fallbacks in TTY
+  ;; Maps common macOS Option characters directly to Meta shortcuts even if terminal omits Esc+ prefix
+  (when-mac
+    (dolist (mapping '(("≈" . [?\e ?x])  ; Option-x -> M-x
+                       ("ƒ" . [?\e ?f])  ; Option-f -> M-f
+                       ("∫" . [?\e ?b])  ; Option-b -> M-b
+                       ("π" . [?\e ?p])  ; Option-p -> M-p
+                       ("˜" . [?\e ?n])  ; Option-n -> M-n
+                       ("√" . [?\e ?v])  ; Option-v -> M-v
+                       ("∑" . [?\e ?w])  ; Option-w -> M-w
+                       ("∂" . [?\e ?d]))) ; Option-d -> M-d
+      (define-key local-function-key-map (car mapping) (cdr mapping)))))
+
 (provide 'config)
 ;;; config.el ends here
