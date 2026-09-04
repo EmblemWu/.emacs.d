@@ -219,6 +219,39 @@
              (message "Failed to clone %s. Check buffer %s"
                       repo-slug (buffer-name (process-buffer proc)))))))))))
 
+(defun my/github-view-file (repo-input file-path)
+  "Open a single file from a GitHub repository on-demand without cloning (VFS stream)."
+  (interactive
+   (let* ((repo (read-string "GitHub repository (owner/repo): "))
+          (path (read-string (format "File path in %s (e.g. README.md, src/main.rs): " repo))))
+     (list repo path)))
+  (let* ((clean-repo (string-trim repo-input))
+         (repo-slug
+          (cond
+           ((string-match "github\\.com[:/]\\([^/]+/[^/.]+?\\)\\(?:\\.git\\)?$" clean-repo)
+            (match-string 1 clean-repo))
+           ((string-match "^\\([^/]+/[^/.]+\\)$" clean-repo)
+            (match-string 1 clean-repo))
+           (t (user-error "Invalid repository format. Use 'owner/repo'"))))
+         (clean-path (string-trim file-path))
+         (buf-name (format "*gh: %s/%s*" repo-slug clean-path))
+         (raw-url (format "https://raw.githubusercontent.com/%s/HEAD/%s" repo-slug clean-path)))
+    (with-current-buffer (get-buffer-create buf-name)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (message "Streaming %s/%s from GitHub..." repo-slug clean-path)
+        (let ((exit-code (call-process "curl" nil t nil "-sL" raw-url)))
+          (if (and (zerop exit-code) (> (buffer-size) 0))
+              (progn
+                (setq buffer-file-name clean-path)
+                (set-auto-mode)
+                (setq buffer-file-name nil)
+                (read-only-mode 1)
+                (switch-to-buffer (current-buffer))
+                (message "Streamed %s/%s on-demand (0 bytes cloned)." repo-slug clean-path))
+            (kill-buffer (current-buffer))
+            (user-error "Failed to fetch %s/%s from GitHub" repo-slug clean-path)))))))
+
 ;;;; 11. Universal terminal and remote SSH adaptation (macOS, Linux, OpenBSD)
 (unless (display-graphic-p)
   ;; Disable textual menu bar row in terminal
