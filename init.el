@@ -1,12 +1,12 @@
-;; File: init.el
+;;; init.el --- Main initialization -*- lexical-binding: t -*-
 
-;; 加载顺序：包 → 基础配置 → 界面 → 按键（按键最后加载，可覆盖默认键位）
+;; Load order: packages -> base config -> ui -> keybindings (keybindings loaded last to override defaults)
 (require 'packages)
 (require 'config)
 (require 'ui)
 (require 'keybinding)
 
-;; Emacs server：供 emacsclient 复用
+;; Emacs server: start server for emacsclient workflows
 (require 'server)
 (unless (server-running-p)
   (server-start))
@@ -24,3 +24,5 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;; init.el ends here
